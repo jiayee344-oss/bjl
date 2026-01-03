@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百家乐智能趋势分析系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0c3b2e 0%, #1b5e20 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        /* 头部样式 */
+        .main-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .main-title {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .subtitle {
+            color: #c8e6c9;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+        
+        .ai-badge {
+            display: inline-block;
+            background: linear-gradient(45deg, #ff9800, #ff5722);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-left: 10px;
+        }
+        
+        /* 主布局 */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        @media (min-width: 992px) {
+            .main-layout {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        
+        /* 面板样式 */
+        .panel {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        .panel-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #4caf50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(76, 175, 80, 0.3);
+        }
+        
+        .panel-title i {
+            color: #ff9800;
+        }
+        
+        /* 快速输入按钮 */
+        .quick-input-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .quick-btn {
+            padding: 20px;
+            border-radius: 12px;
+            border: none;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .quick-btn i {
+            font-size: 2rem;
+        }
+        
+        .quick-btn.banker-btn {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+        
+        .quick-btn.player-btn {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+            color: white;
+        }
+        
+        .quick-btn.tie-btn {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+        
+        .quick-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .quick-btn:active {
+            transform: translateY(0);
+        }
+        
+        /* 输入区域 */
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-label {
+            display: block;
+            margin-bottom: 10px;
+            color: #c8e6c9;
+            font-size: 1rem;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1.1rem;
+            font-family: monospace;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #ff9800;
+            box-shadow: 0 0 10px rgba(255, 152, 0, 0.3);
+        }
+        
+        .input-hint {
+            color: #ff9800;
+            font-size: 0.9rem;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        /* 分析算法选择 */
+        .algorithm-selection {
+            margin-bottom: 20px;
+        }
+        
+        .algorithm-select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .algorithm-select option {
+            background: #1b5e20;
+            color: white;
+        }
+        
+        /* 按钮样式 */
+        .btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: none;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4caf50, #388e3c);
+            color: white;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        
+        /* AI分析结果 */
+        .analysis-result {
+            margin-top: 20px;
+        }
+        
+        .result-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 5px solid #4caf50;
+        }
+        
+        .result-card.warning {
+            border-left-color: #ff9800;
+        }
+        
+        .result-card.danger {
+            border-left-color: #f44336;
+        }
+        
+        .result-card.success {
+            border-left-color: #2196f3;
+        }
+        
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .result-title {
+            font-size: 1.3rem;
+            color: #4caf50;
+        }
+        
+        .result-algorithm {
+            font-size: 0.9rem;
+            color: #c8e6c9;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 4px 10px;
+            border-radius: 15px;
+        }
+        
+        /* 趋势分析 */
+        .trend-analysis {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .trend-item {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .trend-label {
+            color: #c8e6c9;
+            font-weight: 600;
+        }
+        
+        .trend-value {
+            color: #fff;
+            margin-left: 10px;
+        }
+        
+        /* 建议区域 */
+        .recommendation-box {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(56, 142, 60, 0.1));
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            border: 1px solid rgba(76, 175, 80, 0.3);
+        }
+        
+        .recommendation-title {
+            color: #4caf50;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .recommendation-text {
+            color: #fff;
+            line-height: 1.6;
+            font-size: 1.1rem;
+        }
+        
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-label {
+            color: #c8e6c9;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #4caf50;
+        }
+        
+        /* 路子显示 */
+        .road-display-container {
+            margin-top: 20px;
+        }
+        
+        .road-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .road-item {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        
+        .road-item:hover {
+            transform: scale(1.1);
+        }
+        
+        .road-item.banker {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            box-shadow: 0 3px 8px rgba(244, 67, 54, 0.3);
+        }
+        
+        .road-item.player {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+            box-shadow: 0 3px 8px rgba(33, 150, 243, 0.3);
+        }
+        
+        .road-item.tie {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            box-shadow: 0 3px 8px rgba(255, 152, 0, 0.3);
+        }
+        
+        /* 记录表格 */
+        .records-table-container {
+            margin-top: 20px;
+        }
+        
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        
+        .records-table th {
+            background: rgba(76, 175, 80, 0.2);
+            padding: 12px 10px;
+            text-align: left;
+            color: #4caf50;
+            font-weight: 600;
+        }
+        
+        .records-table td {
+            padding: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .records-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        /* 加载动画 */
+        .loading {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #4caf50;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* 算法说明 */
+        .algorithm-info {
+            background: rgba(33, 150, 243, 0.1);
+            border: 1px solid rgba(33, 150, 243, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .algorithm-info h4 {
+            color: #2196f3;
+            margin-bottom: 10px;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2rem;
+            }
+            
+            .quick-input-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+            }
+            
+            .panel {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <header class="main-header">
+            <h1 class="main-title">百家乐智能趋势分析系统 <span class="ai-badge">本地AI</span></h1>
+            <p class="subtitle">无需API密钥 | 本地智能算法分析 | 趋势判断与房间评估 | 连输5局预警 | 智能换房建议</p>
+        </header>
+        
+        <!-- 主布局 -->
+        <div class="main-layout">
+            <!-- 左侧面板：数据输入 -->
+            <div class="panel">
+                <h2 class="panel-title"><i class="fas fa-keyboard"></i> 数据输入</h2>
+                
+                <!-- 快速输入按钮 -->
+                <div class="quick-input-buttons">
+                    <button class="quick-btn banker-btn" id="bankerBtn">
+                        <i class="fas fa-crown"></i>
+                        庄赢 (B)
+                    </button>
+                    
+                    <button class="quick-btn player-btn" id="playerBtn">
+                        <i class="fas fa-user"></i>
+                        闲赢 (P)
+                    </button>
+                    
+                    <button class="quick-btn tie-btn" id="tieBtn">
+                        <i class="fas fa-equals"></i>
+                        和局 (T)
+                    </button>
+                </div>
+                
+                <!-- 路子输入 -->
+                <div class="input-group">
+                    <label class="input-label">
+                        <i class="fas fa-road"></i> 当前房间路子数据
+                    </label>
+                    <input type="text" class="input-field" id="roadInput" 
+                           placeholder="点击上方按钮输入结果，或手动输入 (B=庄赢, P=闲赢, T=和局)">
+                    <div class="input-hint">
+                        <i class="fas fa-lightbulb"></i> 最少输入5局数据获得基本分析，10局以上更准确
+                    </div>
+                </div>
+                
+                <!-- 算法选择 -->
+                <div class="algorithm-selection">
+                    <label class="input-label">
+                        <i class="fas fa-cogs"></i> 选择分析算法
+                    </label>
+                    <select class="algorithm-select" id="algorithmSelect">
+                        <option value="advanced">高级趋势分析 (最全面)</option>
+                        <option value="bigeye">大眼路分析 (传统方法)</option>
+                        <option value="smallroad">小路分析 (趋势检测)</option>
+                        <option value="statistical">统计分析 (数据驱动)</option>
+                        <option value="hybrid">混合算法 (推荐)</option>
+                    </select>
+                </div>
+                
+                <!-- 按钮组 -->
+                <div class="button-group">
+                    <button class="btn btn-primary" id="analyzeBtn">
+                        <i class="fas fa-brain"></i> 智能分析
+                    </button>
+                    <button class="btn btn-success" id="autoAnalyzeBtn">
+                        <i class="fas fa-robot"></i> 自动分析模式
+                    </button>
+                    <button class="btn btn-secondary" id="clearBtn">
+                        <i class="fas fa-trash-alt"></i> 清空数据
+                    </button>
+                </div>
+                
+                <!-- 算法说明 -->
+                <div class="algorithm-info">
+                    <h4><i class="fas fa-info-circle"></i> 本地AI算法说明</h4>
+                    <p style="color: #c8e6c9; font-size: 0.9rem;">
+                        所有分析都在您的浏览器本地运行，无需连接外部API，保护您的隐私和数据安全。
+                        系统使用高级统计算法和趋势识别技术进行智能分析。
+                    </p>
+                </div>
+            </div>
+            
+            <!-- 右侧面板：AI分析结果 -->
+            <div class="panel">
+                <h2 class="panel-title"><i class="fas fa-chart-line"></i> 智能分析结果</h2>
+                
+                <!-- 加载动画 -->
+                <div class="loading" id="loadingIndicator">
+                    <div class="spinner"></div>
+                    <p>正在分析路子趋势...</p>
+                    <p id="algorithmInfo" style="color: #c8e6c9; font-size: 0.9rem; margin-top: 10px;"></p>
+                </div>
+                
+                <!-- 分析结果 -->
+                <div class="analysis-result" id="analysisResult">
+                    <div class="result-card">
+                        <div class="result-header">
+                            <div class="result-title">等待分析</div>
+                            <div class="result-algorithm">选择算法并输入数据</div>
+                        </div>
+                        
+                        <div class="recommendation-box">
+                            <div class="recommendation-title">
+                                <i class="fas fa-info-circle"></i> 系统说明
+                            </div>
+                            <div class="recommendation-text">
+                                <p>1. 点击上方按钮或手动输入路子数据</p>
+                                <p>2. 选择分析算法类型</p>
+                                <p>3. 点击"智能分析"获取专业趋势判断</p>
+                                <p>4. 系统专注分析房间适玩性，不提供单局下注建议</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 统计信息 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">当前连输</div>
+                        <div class="stat-value" id="lossStreak">0</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">总投注</div>
+                        <div class="stat-value" id="totalBets">0</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">总盈利</div>
+                        <div class="stat-value" id="totalProfit">RM 0</div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-label">胜率</div>
+                        <div class="stat-value" id="winRate">0%</div>
+                    </div>
+                </div>
+                
+                <!-- 路子显示 -->
+                <div class="road-display-container">
+                    <h3 class="panel-title" style="font-size: 1.2rem;">
+                        <i class="fas fa-th-large"></i> 当前路子 (最近20局)
+                    </h3>
+                    <div class="road-display" id="roadDisplay">
+                        <!-- 路子将动态显示在这里 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 趋势记录 -->
+        <div class="panel">
+            <h2 class="panel-title"><i class="fas fa-history"></i> 趋势分析记录</h2>
+            
+            <!-- 趋势分析说明 -->
+            <div class="trend-analysis">
+                <div class="trend-item">
+                    <span class="trend-label">分析重点：</span>
+                    <span class="trend-value">趋势稳定性 | 输赢交替模式 | 连串分析 | 房间适玩性</span>
+                </div>
+                <div class="trend-item">
+                    <span class="trend-label">预警机制：</span>
+                    <span class="trend-value">连输5局自动预警 | 趋势混乱建议换房 | 高频交替建议观察</span>
+                </div>
+                <div class="trend-item">
+                    <span class="trend-label">本地算法：</span>
+                    <span class="trend-value">无需API密钥 | 完全本地运行 | 数据安全保护</span>
+                </div>
+            </div>
+            
+            <!-- 记录表格 -->
+            <div class="records-table-container">
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>序号</th>
+                            <th>使用算法</th>
+                            <th>趋势判断</th>
+                            <th>房间评估</th>
+                            <th>建议</th>
+                            <th>时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 40px; color: #c8e6c9;">
+                                <i class="fas fa-database" style="font-size: 1.5rem; margin-bottom: 15px; display: block;"></i>
+                                暂无分析记录
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 本地智能分析算法
+        class LocalBaccaratAI {
+            constructor() {
+                this.algorithms = {
+                    'advanced': this.advancedTrendAnalysis.bind(this),
+                    'bigeye': this.bigEyeAnalysis.bind(this),
+                    'smallroad': this.smallRoadAnalysis.bind(this),
+                    'statistical': this.statisticalAnalysis.bind(this),
+                    'hybrid': this.hybridAnalysis.bind(this)
+                };
+                
+                this.algorithmNames = {
+                    'advanced': '高级趋势分析',
+                    'bigeye': '大眼路分析',
+                    'smallroad': '小路分析',
+                    'statistical': '统计分析',
+                    'hybrid': '混合算法'
+                };
+            }
+            
+            // 高级趋势分析
+            advancedTrendAnalysis(road) {
+                if (road.length < 5) {
+                    return this.getInsufficientDataResult();
+                }
+                
+                const stats = this.calculateStats(road);
+                const recent5 = this.analyzeRecent5(road);
+                const alternation = this.detectAlternationPattern(road);
+                const streaks = this.analyzeStreaks(road);
+                const trend = this.determineOverallTrend(road);
+                
+                // 综合评分
+                const score = this.calculateTrendScore(stats, recent5, alternation, streaks, trend);
+                
+                // 生成建议
+                const recommendation = this.generateRecommendation(score, alternation, streaks, stats);
+                
+                return {
+                    trend: this.getTrendDescription(score),
+                    roomAssessment: this.getRoomAssessment(score),
+                    recommendation: recommendation,
+                    warnings: this.generateWarnings(streaks, alternation, stats),
+                    score: score,
+                    analysis: {
+                        stats: stats,
+                        recent5: recent5,
+                        alternation: alternation,
+                        streaks: streaks,
+                        trend: trend
+                    }
+                };
+            }
+            
+            // 大眼路分析
+            bigEyeAnalysis(road) {
+                if (road.length < 5) {
+                    return this.getInsufficientDataResult();
+                }
+                
+                const bigEyePattern = this.analyzeBigEyeRoad(road);
+                const recentTrend = this.analyzeRecentTrend(road, 8);
+                const stability = this.calculateStability(road);
+                
+                let recommendation = "";
+                let trend = "未知";
+                
+                if (bigEyePattern.alternationRate > 70) {
+                    trend = "高频交替趋势";
+                    recommendation = "检测到明显输赢交替模式，建议观察或考虑跟随交替趋势";
+                } else if (bigEyePattern.strength > 60) {
+                    trend = "单边趋势";
+                    recommendation = "检测到明显单边趋势，可考虑顺势下注";
+                } else {
+                    trend = "趋势不明显";
+                    recommendation = "趋势不明显，建议谨慎观察";
+                }
+                
+                return {
+                    trend: trend,
+                    roomAssessment: stability >= 60 ? "稳定" : "不稳定",
+                    recommendation: recommendation,
+                    warnings: [],
+                    score: Math.round((bigEyePattern.strength + stability) / 2),
+                    analysis: {
+                        bigEyePattern: bigEyePattern,
+                        stability: stability,
+                        recentTrend: recentTrend
+                    }
+                };
+            }
+            
+            // 小路分析
+            smallRoadAnalysis(road) {
+                if (road.length < 5) {
+                    return this.getInsufficientDataResult();
+                }
+                
+                const smallRoad = this.analyzeSmallRoad(road);
+                const streakAnalysis = this.analyzeStreakPatterns(road);
+                const trendStrength = this.calculateTrendStrength(road);
+                
+                let recommendation = "";
+                let trend = "未知";
+                
+                if (smallRoad.maxStreak >= 5) {
+                    trend = "长连串趋势";
+                    recommendation = "检测到长连串，注意趋势可能即将反转";
+                } else if (smallRoad.totalStreaks >= 3) {
+                    trend = "多连串趋势";
+                    recommendation = "检测到多个连串，趋势较为活跃";
+                } else {
+                    trend = "平稳趋势";
+                    recommendation = "趋势平稳，无明显连串";
+                }
+                
+                return {
+                    trend: trend,
+                    roomAssessment: trendStrength >= 60 ? "适合玩" : "需谨慎",
+                    recommendation: recommendation,
+                    warnings: smallRoad.maxStreak >= 6 ? ["注意：有超长连串出现"] : [],
+                    score: trendStrength,
+                    analysis: {
+                        smallRoad: smallRoad,
+                        streakAnalysis: streakAnalysis,
+                        trendStrength: trendStrength
+                    }
+                };
+            }
+            
+            // 统计分析
+            statisticalAnalysis(road) {
+                if (road.length < 5) {
+                    return this.getInsufficientDataResult();
+                }
+                
+                const stats = this.calculateStats(road);
+                const recentStats = this.calculateStats(road.slice(-10));
+                const deviation = this.calculateDeviation(road);
+                
+                let recommendation = "";
+                let trend = "未知";
+                
+                if (Math.abs(stats.bankerRate - stats.playerRate) > 20) {
+                    trend = stats.bankerRate > stats.playerRate ? "庄家优势" : "闲家优势";
+                    recommendation = `检测到明显${stats.bankerRate > stats.playerRate ? '庄家' : '闲家'}优势 (${Math.abs(stats.bankerRate - stats.playerRate)}%)`;
+                } else if (stats.tieRate > 20) {
+                    trend = "和局高频";
+                    recommendation = "和局频率过高，房间不稳定";
+                } else {
+                    trend = "趋势平衡";
+                    recommendation = "庄闲分布相对平衡";
+                }
+                
+                return {
+                    trend: trend,
+                    roomAssessment: deviation < 30 ? "稳定" : "波动大",
+                    recommendation: recommendation,
+                    warnings: stats.tieRate > 25 ? ["和局频率过高，建议换房"] : [],
+                    score: Math.max(0, 100 - deviation),
+                    analysis: {
+                        stats: stats,
+                        recentStats: recentStats,
+                        deviation: deviation
+                    }
+                };
+            }
+            
+            // 混合算法
+            hybridAnalysis(road) {
+                if (road.length < 5) {
+                    return this.getInsufficientDataResult();
+                }
+                
+                // 运行所有算法
+                const advanced = this.advancedTrendAnalysis(road);
+                const bigEye = this.bigEyeAnalysis(road);
+                const smallRoad = this.smallRoadAnalysis(road);
+                const statistical = this.statisticalAnalysis(road);
+                
+                // 综合结果
+                const avgScore = Math.round((advanced.score + bigEye.score + smallRoad.score + statistical.score) / 4);
+                
+                let recommendation = "";
+                if (advanced.score >= 70 && bigEye.score >= 70) {
+                    recommendation = advanced.recommendation;
+                } else if (smallRoad.score >= 65) {
+                    recommendation = smallRoad.recommendation;
+                } else {
+                    recommendation = statistical.recommendation;
+                }
+                
+                // 收集所有警告
+                const allWarnings = [
+                    ...advanced.warnings,
+                    ...bigEye.warnings,
+                    ...smallRoad.warnings,
+                    ...statistical.warnings
+                ];
+                
+                return {
+                    trend: advanced.trend,
+                    roomAssessment: this.getRoomAssessment(avgScore),
+                    recommendation: recommendation,
+                    warnings: [...new Set(allWarnings)], // 去重
+                    score: avgScore,
+                    analysis: {
+                        advanced: advanced,
+                        bigEye: bigEye,
+                        smallRoad: smallRoad,
+                        statistical: statistical
+                    }
+                };
+            }
+            
+            // 辅助方法
+            calculateStats(road) {
+                const counts = { B: 0, P: 0, T: 0 };
+                road.forEach(item => counts[item]++);
+                
+                const total = road.length;
+                return {
+                    bankerRate: Math.round((counts.B / total) * 100),
+                    playerRate: Math.round((counts.P / total) * 100),
+                    tieRate: Math.round((counts.T / total) * 100),
+                    counts: counts,
+                    total: total
+                };
+            }
+            
+            analyzeRecent5(road) {
+                const recent5 = road.slice(-5);
+                const counts = { B: 0, P: 0, T: 0 };
+                recent5.forEach(item => counts[item]++);
+                
+                return {
+                    counts: counts,
+                    bankerRate: Math.round((counts.B / 5) * 100),
+                    playerRate: Math.round((counts.P / 5) * 100),
+                    tieRate: Math.round((counts.T / 5) * 100)
+                };
+            }
+            
+            detectAlternationPattern(road) {
+                let alternationCount = 0;
+                let totalComparisons = 0;
+                
+                for (let i = 2; i < road.length; i++) {
+                    if (road[i] !== 'T' && road[i-1] !== 'T' && road[i-2] !== 'T') {
+                        totalComparisons++;
+                        if (road[i] !== road[i-1] && road[i-1] !== road[i-2]) {
+                            alternationCount++;
+                        }
+                    }
+                }
+                
+                const alternationRate = totalComparisons > 0 ? Math.round((alternationCount / totalComparisons) * 100) : 0;
+                
+                return {
+                    hasPattern: alternationRate > 60,
+                    rate: alternationRate,
+                    strength: alternationRate
+                };
+            }
+            
+            analyzeStreaks(road) {
+                let currentStreak = 1;
+                let maxStreak = 1;
+                let streakType = road[0];
+                let totalStreaks = 0;
+                
+                for (let i = 1; i < road.length; i++) {
+                    if (road[i] === road[i-1] && road[i] !== 'T') {
+                        currentStreak++;
+                        if (currentStreak > maxStreak) {
+                            maxStreak = currentStreak;
+                            streakType = road[i];
+                        }
+                    } else {
+                        if (currentStreak > 1) {
+                            totalStreaks++;
+                        }
+                        currentStreak = 1;
+                    }
+                }
+                
+                if (currentStreak > 1) {
+                    totalStreaks++;
+                }
+                
+                return {
+                    maxStreak: maxStreak,
+                    totalStreaks: totalStreaks,
+                    lastStreakType: streakType,
+                    hasLongStreak: maxStreak >= 4
+                };
+            }
+            
+            determineOverallTrend(road) {
+                if (road.length < 10) return 'insufficient';
+                
+                const stats = this.calculateStats(road);
+                const diff = Math.abs(stats.bankerRate - stats.playerRate);
+                
+                if (diff > 20) {
+                    return stats.bankerRate > stats.playerRate ? 'banker_bias' : 'player_bias';
+                } else if (diff > 10) {
+                    return stats.bankerRate > stats.playerRate ? 'banker_slight' : 'player_slight';
+                } else {
+                    return 'balanced';
+                }
+            }
+            
+            calculateTrendScore(stats, recent5, alternation, streaks, trend) {
+                let score = 50;
+                
+                // 基于统计
+                const balanceScore = 100 - Math.abs(stats.bankerRate - stats.playerRate);
+                score += (balanceScore - 50) * 0.3;
+                
+                // 基于最近5局
+                const recentScore = Math.max(recent5.bankerRate, recent5.playerRate);
+                score += (recentScore - 50) * 0.2;
+                
+                // 基于连串
+                if (streaks.hasLongStreak) {
+                    score -= 10;
+                }
+                
+                // 基于交替模式
+                if (alternation.hasPattern) {
+                    score += 5;
+                }
+                
+                // 基于和局
+                if (stats.tieRate > 20) {
+                    score -= 15;
+                }
+                
+                return Math.max(0, Math.min(100, score));
+            }
+            
+            generateRecommendation(score, alternation, streaks, stats) {
+                let recommendation = "";
+                
+                if (score >= 75) {
+                    recommendation = "趋势稳定清晰，适合在当前房间继续玩";
+                } else if (score >= 60) {
+                    recommendation = "趋势较好，可谨慎下注";
+                } else if (score >= 45) {
+                    recommendation = "趋势一般，建议观察1-2局";
+                } else if (score >= 30) {
+                    recommendation = "趋势不稳定，建议考虑换房";
+                } else {
+                    recommendation = "趋势混乱，强烈建议换房观察";
+                }
+                
+                // 添加具体原因
+                if (alternation.hasPattern && alternation.rate > 70) {
+                    recommendation += "，检测到明显输赢交替模式";
+                }
+                
+                if (streaks.maxStreak >= 5) {
+                    recommendation += "，注意有长连串出现";
+                }
+                
+                if (stats.tieRate > 20) {
+                    recommendation += "，和局频率较高";
+                }
+                
+                return recommendation;
+            }
+            
+            generateWarnings(streaks, alternation, stats) {
+                const warnings = [];
+                
+                if (streaks.maxStreak >= 6) {
+                    warnings.push("⚠️ 检测到超长连串，趋势可能即将反转");
+                }
+                
+                if (stats.tieRate > 25) {
+                    warnings.push("⚠️ 和局频率过高，房间不稳定");
+                }
+                
+                if (alternation.hasPattern && alternation.rate > 80) {
+                    warnings.push("⚠️ 高频输赢交替，趋势难以把握");
+                }
+                
+                return warnings;
+            }
+            
+            getTrendDescription(score) {
+                if (score >= 75) return "优秀趋势";
+                if (score >= 60) return "良好趋势";
+                if (score >= 45) return "一般趋势";
+                if (score >= 30) return "不稳定趋势";
+                return "混乱趋势";
+            }
+            
+            getRoomAssessment(score) {
+                if (score >= 70) return "适合玩";
+                if (score >= 50) return "需谨慎";
+                if (score >= 30) return "建议观察";
+                return "建议换房";
+            }
+            
+            getInsufficientDataResult() {
+                return {
+                    trend: "数据不足",
+                    roomAssessment: "无法评估",
+                    recommendation: "至少需要5局数据进行分析",
+                    warnings: ["数据不足，无法进行准确分析"],
+                    score: 0,
+                    analysis: null
+                };
+            }
+            
+            // 大眼路分析方法
+            analyzeBigEyeRoad(road) {
+                const pattern = [];
+                let sameCount = 0;
+                let diffCount = 0;
+                
+                for (let i = 1; i < road.length; i++) {
+                    if (road[i] === road[i-1] && road[i] !== 'T') {
+                        pattern.push('S');
+                        sameCount++;
+                    } else if (road[i] !== 'T' && road[i-1] !== 'T') {
+                        pattern.push('D');
+                        diffCount++;
+                    } else {
+                        pattern.push(' ');
+                    }
+                }
+                
+                const total = sameCount + diffCount;
+                const strength = total > 0 ? Math.round((Math.max(sameCount, diffCount) / total) * 100) : 0;
+                const alternationRate = total > 0 ? Math.round((diffCount / total) * 100) : 0;
+                
+                return {
+                    pattern: pattern.slice(-20),
+                    sameCount,
+                    diffCount,
+                    strength,
+                    alternationRate
+                };
+            }
+            
+            // 小路分析方法
+            analyzeSmallRoad(road) {
+                let currentStreak = 1;
+                let maxStreak = 1;
+                let totalStreaks = 0;
+                
+                for (let i = 1; i < road.length; i++) {
+                    if (road[i] === road[i-1] && road[i] !== 'T') {
+                        currentStreak++;
+                        maxStreak = Math.max(maxStreak, currentStreak);
+                    } else {
+                        if (currentStreak > 1) {
+                            totalStreaks++;
+                        }
+                        currentStreak = 1;
+                    }
+                }
+                
+                if (currentStreak > 1) {
+                    totalStreaks++;
+                }
+                
+                return {
+                    maxStreak,
+                    totalStreaks,
+                    avgStreak: totalStreaks > 0 ? Math.round((road.length - road.filter(r => r === 'T').length) / totalStreaks * 10) / 10 : 0
+                };
+            }
+            
+            // 趋势强度计算
+            calculateTrendStrength(road) {
+                if (road.length < 5) return 0;
+                
+                const recent = road.slice(-8);
+                const counts = { B: 0, P: 0 };
+                recent.forEach(item => {
+                    if (item === 'B') counts.B++;
+                    if (item === 'P') counts.P++;
+                });
+                
+                const maxCount = Math.max(counts.B, counts.P);
+                return Math.round((maxCount / (recent.length - recent.filter(r => r === 'T').length)) * 100);
+            }
+            
+            // 稳定性计算
+            calculateStability(road) {
+                let changes = 0;
+                for (let i = 1; i < road.length; i++) {
+                    if (road[i] !== road[i-1]) changes++;
+                }
+                
+                const changeRate = changes / (road.length - 1);
+                return Math.round((1 - changeRate) * 100);
+            }
+            
+            // 偏差计算
+            calculateDeviation(road) {
+                const stats = this.calculateStats(road);
+                const ideal = 50; // 理想平衡点
+                const deviation = Math.abs(stats.bankerRate - ideal) + Math.abs(stats.playerRate - ideal) + Math.abs(stats.tieRate - 0);
+                return Math.round(deviation / 3);
+            }
+            
+            // 分析最近趋势
+            analyzeRecentTrend(road, length) {
+                const recent = road.slice(-length);
+                const stats = this.calculateStats(recent);
+                
+                let trend = "平衡";
+                if (stats.bankerRate > stats.playerRate + 15) trend = "庄强势";
+                else if (stats.playerRate > stats.bankerRate + 15) trend = "闲强势";
+                
+                return {
+                    trend,
+                    stats
+                };
+            }
+            
+            // 分析连串模式
+            analyzeStreakPatterns(road) {
+                const streaks = this.analyzeStreaks(road);
+                const pattern = [];
+                let currentStreak = 1;
+                
+                for (let i = 1; i < road.length; i++) {
+                    if (road[i] === road[i-1] && road[i] !== 'T') {
+                        currentStreak++;
+                    } else {
+                        if (currentStreak > 1) {
+                            pattern.push({
+                                type: road[i-1],
+                                length: currentStreak
+                            });
+                        }
+                        currentStreak = 1;
+                    }
+                }
+                
+                if (currentStreak > 1) {
+                    pattern.push({
+                        type: road[road.length - 1],
+                        length: currentStreak
+                    });
+                }
+                
+                return {
+                    pattern: pattern.slice(-5),
+                    ...streaks
+                };
+            }
+            
+            // 主分析入口
+            analyze(road, algorithmType = 'hybrid') {
+                const algorithm = this.algorithms[algorithmType] || this.algorithms['hybrid'];
+                return algorithm(road);
+            }
+        }
+        
+        // 应用状态管理
+        class LocalAnalysisApp {
+            constructor() {
+                this.ai = new LocalBaccaratAI();
+                this.currentRoad = [];
+                this.analysisRecords = [];
+                this.lossStreak = 0;
+                this.totalProfit = 0;
+                this.totalBets = 0;
+                this.wins = 0;
+                this.autoAnalyze = false;
+                this.autoAnalyzeInterval = null;
+                
+                this.init();
+            }
+            
+            init() {
+                this.bindEvents();
+                this.updateDisplay();
+            }
+            
+            bindEvents() {
+                // 快速输入按钮
+                document.getElementById('bankerBtn').addEventListener('click', () => this.addResult('B'));
+                document.getElementById('playerBtn').addEventListener('click', () => this.addResult('P'));
+                document.getElementById('tieBtn').addEventListener('click', () => this.addResult('T'));
+                
+                // 分析按钮
+                document.getElementById('analyzeBtn').addEventListener('click', () => this.analyzeWithAI());
+                
+                // 自动分析按钮
+                document.getElementById('autoAnalyzeBtn').addEventListener('click', () => this.toggleAutoAnalyze());
+                
+                // 清空按钮
+                document.getElementById('clearBtn').addEventListener('click', () => this.clearData());
+                
+                // 输入框变化自动更新
+                document.getElementById('roadInput').addEventListener('input', () => {
+                    this.parseRoadInput();
+                    this.updateRoadDisplay();
+                    
+                    // 如果自动分析模式开启，自动分析
+                    if (this.autoAnalyze) {
+                        setTimeout(() => this.analyzeWithAI(), 500);
+                    }
+                });
+            }
+            
+            // 添加结果
+            addResult(result) {
+                const roadInput = document.getElementById('roadInput');
+                let currentValue = roadInput.value.trim();
+                
+                if (currentValue) {
+                    currentValue += ',' + result;
+                } else {
+                    currentValue = result;
+                }
+                
+                roadInput.value = currentValue;
+                this.parseRoadInput();
+                this.updateRoadDisplay();
+                
+                // 如果自动分析模式开启，自动分析
+                if (this.autoAnalyze) {
+                    setTimeout(() => this.analyzeWithAI(), 300);
+                }
+            }
+            
+            // 解析路子输入
+            parseRoadInput() {
+                const roadInput = document.getElementById('roadInput').value.trim().toUpperCase();
+                
+                if (!roadInput) {
+                    this.currentRoad = [];
+                    return;
+                }
+                
+                // 解析路子数据
+                const newRoads = roadInput.split(',').filter(item => 
+                    item === 'B' || item === 'P' || item === 'T'
+                );
+                
+                this.currentRoad = newRoads;
+            }
+            
+            // 使用本地AI分析
+            analyzeWithAI() {
+                if (this.currentRoad.length < 3) {
+                    this.displayInsufficientData();
+                    return;
+                }
+                
+                const selectedAlgorithm = document.getElementById('algorithmSelect').value;
+                const algorithmName = this.ai.algorithmNames[selectedAlgorithm];
+                
+                // 显示加载动画
+                document.getElementById('loadingIndicator').style.display = 'block';
+                document.getElementById('algorithmInfo').textContent = `正在使用 ${algorithmName} 进行分析...`;
+                document.getElementById('analysisResult').innerHTML = '';
+                
+                // 模拟延迟（让用户看到加载效果）
+                setTimeout(() => {
+                    try {
+                        // 执行分析
+                        const analysisResult = this.ai.analyze(this.currentRoad, selectedAlgorithm);
+                        
+                        // 显示分析结果
+                        this.displayAnalysisResult(analysisResult, algorithmName);
+                        
+                        // 保存分析记录
+                        this.saveAnalysisRecord(analysisResult, algorithmName);
+                        
+                    } catch (error) {
+                        console.error('分析失败:', error);
+                        this.displayErrorResult(error.message);
+                    } finally {
+                        // 隐藏加载动画
+                        document.getElementById('loadingIndicator').style.display = 'none';
+                    }
+                }, 800); // 800ms延迟让用户体验更好
+            }
+            
+            // 显示分析结果
+            displayAnalysisResult(analysisResult, algorithmName) {
+                const { trend, roomAssessment, recommendation, warnings, score, analysis } = analysisResult;
+                
+                // 确定卡片样式
+                let cardClass = 'success';
+                if (score < 30) {
+                    cardClass = 'danger';
+                } else if (score < 45) {
+                    cardClass = 'warning';
+                } else if (score < 60) {
+                    cardClass = 'success';
+                }
+                
+                const resultHTML = `
+                    <div class="result-card ${cardClass}">
+                        <div class="result-header">
+                            <div class="result-title">${algorithmName} 结果</div>
+                            <div class="result-algorithm">趋势评分: ${score}/100</div>
+                        </div>
+                        
+                        <div class="trend-analysis">
+                            <div class="trend-item">
+                                <span class="trend-label">趋势判断:</span>
+                                <span class="trend-value">${trend}</span>
+                            </div>
+                            <div class="trend-item">
+                                <span class="trend-label">房间评估:</span>
+                                <span class="trend-value">${roomAssessment}</span>
+                            </div>
+                            <div class="trend-item">
+                                <span class="trend-label">当前连输:</span>
+                                <span class="trend-value">${this.lossStreak}局</span>
+                            </div>
+                            <div class="trend-item">
+                                <span class="trend-label">数据量:</span>
+                                <span class="trend-value">${this.currentRoad.length}局</span>
+                            </div>
+                        </div>
+                        
+                        <div class="recommendation-box">
+                            <div class="recommendation-title">
+                                <i class="fas fa-lightbulb"></i> 分析建议
+                            </div>
+                            <div class="recommendation-text">${recommendation}</div>
+                        </div>
+                        
+                        ${warnings.length > 0 ? `
+                            <div class="trend-analysis" style="background: rgba(244, 67, 54, 0.1);">
+                                <div class="recommendation-title" style="color: #f44336;">
+                                    <i class="fas fa-exclamation-triangle"></i> 风险预警
+                                </div>
+                                ${warnings.map(warning => `
+                                    <div class="trend-item" style="color: #f44336;">
+                                        • ${warning}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                document.getElementById('analysisResult').innerHTML = resultHTML;
+            }
+            
+            // 显示数据不足
+            displayInsufficientData() {
+                const resultHTML = `
+                    <div class="result-card warning">
+                        <div class="result-header">
+                            <div class="result-title">数据不足</div>
+                            <div class="result-algorithm">无法分析</div>
+                        </div>
+                        
+                        <div class="recommendation-box">
+                            <div class="recommendation-title">
+                                <i class="fas fa-info-circle"></i> 需要更多数据
+                            </div>
+                            <div class="recommendation-text">
+                                至少需要5局数据才能进行准确分析。<br>
+                                当前只有 ${this.currentRoad.length} 局数据。<br>
+                                请继续输入更多路子数据。
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('analysisResult').innerHTML = resultHTML;
+            }
+            
+            // 显示错误结果
+            displayErrorResult(errorMessage) {
+                const resultHTML = `
+                    <div class="result-card danger">
+                        <div class="result-header">
+                            <div class="result-title">分析失败</div>
+                            <div class="result-algorithm">系统错误</div>
+                        </div>
+                        
+                        <div class="recommendation-box">
+                            <div class="recommendation-title">
+                                <i class="fas fa-exclamation-triangle"></i> 错误信息
+                            </div>
+                            <div class="recommendation-text">
+                                <p>分析过程中出现错误：${errorMessage}</p>
+                                <p style="margin-top: 10px; color: #c8e6c9;">
+                                    请刷新页面重试，或检查输入数据格式是否正确。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById('analysisResult').innerHTML = resultHTML;
+            }
+            
+            // 保存分析记录
+            saveAnalysisRecord(analysisResult, algorithmName) {
+                const record = {
+                    id: this.analysisRecords.length + 1,
+                    algorithm: algorithmName,
+                    trend: analysisResult.trend,
+                    roomAssessment: analysisResult.roomAssessment,
+                    recommendation: analysisResult.recommendation.substring(0, 50) + '...',
+                    time: new Date().toLocaleTimeString(),
+                    dataPoints: this.currentRoad.length,
+                    lossStreak: this.lossStreak,
+                    score: analysisResult.score
+                };
+                
+                this.analysisRecords.unshift(record);
+                this.updateRecordsDisplay();
+            }
+            
+            // 更新记录显示
+            updateRecordsDisplay() {
+                const recordsBody = document.getElementById('recordsBody');
+                
+                if (this.analysisRecords.length === 0) {
+                    recordsBody.innerHTML = `
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 40px; color: #c8e6c9;">
+                                <i class="fas fa-database" style="font-size: 1.5rem; margin-bottom: 15px; display: block;"></i>
+                                暂无分析记录
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                let recordsHTML = '';
+                
+                this.analysisRecords.slice(0, 10).forEach(record => {
+                    recordsHTML += `
+                        <tr>
+                            <td>${record.id}</td>
+                            <td>${record.algorithm}</td>
+                            <td>${record.trend}</td>
+                            <td>${record.roomAssessment}</td>
+                            <td>${record.recommendation}</td>
+                            <td>${record.time}</td>
+                        </tr>
+                    `;
+                });
+                
+                recordsBody.innerHTML = recordsHTML;
+            }
+            
+            // 更新统计显示
+            updateStatsDisplay() {
+                const winRate = this.totalBets > 0 ? 
+                    Math.round((this.wins / this.totalBets) * 100) : 0;
+                
+                document.getElementById('totalBets').textContent = this.totalBets;
+                document.getElementById('winRate').textContent = `${winRate}%`;
+                document.getElementById('totalProfit').textContent = `RM ${this.totalProfit >= 0 ? '+' : ''}${this.totalProfit}`;
+                document.getElementById('lossStreak').textContent = this.lossStreak;
+            }
+            
+            // 切换自动分析模式
+            toggleAutoAnalyze() {
+                this.autoAnalyze = !this.autoAnalyze;
+                const btn = document.getElementById('autoAnalyzeBtn');
+                
+                if (this.autoAnalyze) {
+                    btn.innerHTML = '<i class="fas fa-stop"></i> 停止自动分析';
+                    btn.className = 'btn btn-danger';
+                    this.startAutoAnalyze();
+                } else {
+                    btn.innerHTML = '<i class="fas fa-robot"></i> 自动分析模式';
+                    btn.className = 'btn btn-success';
+                    this.stopAutoAnalyze();
+                }
+            }
+            
+            // 开始自动分析
+            startAutoAnalyze() {
+                if (!this.autoAnalyze) return;
+                
+                // 如果有数据，立即分析一次
+                if (this.currentRoad.length >= 3) {
+                    this.analyzeWithAI();
+                }
+                
+                // 设置定时器，每10秒检查一次
+                this.autoAnalyzeInterval = setInterval(() => {
+                    if (this.autoAnalyze && this.currentRoad.length >= 3) {
+                        this.analyzeWithAI();
+                    }
+                }, 10000);
+            }
+            
+            // 停止自动分析
+            stopAutoAnalyze() {
+                if (this.autoAnalyzeInterval) {
+                    clearInterval(this.autoAnalyzeInterval);
+                    this.autoAnalyzeInterval = null;
+                }
+            }
+            
+            // 清空数据
+            clearData() {
+                if (confirm('确定要清空所有数据吗？')) {
+                    this.currentRoad = [];
+                    this.analysisRecords = [];
+                    this.lossStreak = 0;
+                    this.totalProfit = 0;
+                    this.totalBets = 0;
+                    this.wins = 0;
+                    
+                    // 停止自动分析
+                    this.autoAnalyze = false;
+                    this.stopAutoAnalyze();
+                    document.getElementById('autoAnalyzeBtn').innerHTML = '<i class="fas fa-robot"></i> 自动分析模式';
+                    document.getElementById('autoAnalyzeBtn').className = 'btn btn-success';
+                    
+                    document.getElementById('roadInput').value = '';
+                    document.getElementById('analysisResult').innerHTML = `
+                        <div class="result-card">
+                            <div class="result-header">
+                                <div class="result-title">等待分析</div>
+                                <div class="result-algorithm">选择算法并输入数据</div>
+                            </div>
+                            
+                            <div class="recommendation-box">
+                                <div class="recommendation-title">
+                                    <i class="fas fa-info-circle"></i> 系统说明
+                                </div>
+                                <div class="recommendation-text">
+                                    <p>1. 点击上方按钮或手动输入路子数据</p>
+                                    <p>2. 选择分析算法类型</p>
+                                    <p>3. 点击"智能分析"获取专业趋势判断</p>
+                                    <p>4. 系统专注分析房间适玩性，不提供单局下注建议</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    this.updateStatsDisplay();
+                    this.updateRecordsDisplay();
+                    this.updateRoadDisplay();
+                }
+            }
+            
+            // 更新路子显示
+            updateRoadDisplay() {
+                const roadDisplay = document.getElementById('roadDisplay');
+                roadDisplay.innerHTML = '';
+                
+                // 如果没有数据，显示空状态
+                if (this.currentRoad.length === 0) {
+                    for (let i = 0; i < 20; i++) {
+                        const emptyItem = document.createElement('div');
+                        emptyItem.className = 'road-item';
+                        emptyItem.style.background = 'rgba(255, 255, 255, 0.05)';
+                        emptyItem.style.border = '1px dashed rgba(76, 175, 80, 0.2)';
+                        roadDisplay.appendChild(emptyItem);
+                    }
+                    return;
+                }
+                
+                // 显示最近20局
+                const displayRoad = this.currentRoad.slice(-20);
+                
+                displayRoad.forEach((item, index) => {
+                    const roadItem = document.createElement('div');
+                    roadItem.className = `road-item ${item === 'B' ? 'banker' : item === 'P' ? 'player' : 'tie'}`;
+                    roadItem.textContent = item;
+                    roadItem.title = `第${this.currentRoad.length - displayRoad.length + index + 1}局: ${item === 'B' ? '庄赢' : item === 'P' ? '闲赢' : '和局'}`;
+                    roadDisplay.appendChild(roadItem);
+                });
+                
+                // 如果数据不足，添加占位符
+                if (displayRoad.length < 20) {
+                    for (let i = displayRoad.length; i < 20; i++) {
+                        const emptyItem = document.createElement('div');
+                        emptyItem.className = 'road-item';
+                        emptyItem.style.background = 'rgba(255, 255, 255, 0.05)';
+                        emptyItem.style.border = '1px dashed rgba(76, 175, 80, 0.2)';
+                        roadDisplay.appendChild(emptyItem);
+                    }
+                }
+            }
+            
+            // 更新显示
+            updateDisplay() {
+                this.updateStatsDisplay();
+                this.updateRecordsDisplay();
+                this.updateRoadDisplay();
+            }
+        }
+        
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', () => {
+            window.localAnalysisApp = new LocalAnalysisApp();
+        });
+    </script>
+</body>
+</html>
